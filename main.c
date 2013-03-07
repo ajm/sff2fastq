@@ -180,6 +180,27 @@ process_sff_to_fastq(char *sff_file, char *fastq_file, int trim_flag) {
 
         /* get clipping points */
         get_clip_values(rh, trim_flag, &left_clip, &right_clip);
+        
+
+        /* if any of the flowgrams are between 0.5 and 0.7 they are suspect and should be truncated there */
+        {
+            int j;
+            int base_index = 4;
+            for(j = 0; j < h.flow_len; ++j) {
+                base_index += round(rd.flowgram[j]);
+
+                if((rd.flowgram[j] >= 0.5) && (rd.flowgram[j] <= 0.7)) {
+                    base_index--;
+                    break;
+                }
+            }
+
+            if(base_index < right_clip) {
+                right_clip = base_index;
+            }
+        }
+
+
         nbases = right_clip - left_clip;
 
         /* create bases string */
